@@ -1,4 +1,9 @@
 #include "systemcalls.h"
+#include <stdlib.h>  // for system()
+#include <stdio.h>   // for perror()
+#include <unistd.h>  // for fork(), execv(), etc.
+#include <sys/wait.h> // for waitpid()
+#include <fcntl.h>   // for open()
 
 /**
  * @param cmd the command to execute with system()
@@ -16,8 +21,17 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
-
-    return true;
+    int ret = system(cmd);
+    if (ret == -1)
+    {
+        perror("system");
+        return false;
+    }
+    else if (WIFEXITED(ret) && WEXITSTATUS(ret) == 0)
+    {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -47,7 +61,7 @@ bool do_exec(int count, ...)
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
+   // command[count] = command[count];
 
 /*
  * TODO:
@@ -61,7 +75,31 @@ bool do_exec(int count, ...)
 
     va_end(args);
 
-    return true;
+    // Use fork(), execv(), and waitpid() to execute a command
+    pid_t pid = fork();
+    if (pid == -1)
+    {
+        perror("fork");
+        return false;
+    }
+    else if (pid == 0)
+    {
+        // Child process: execute command
+        execv(command[0], command);
+        perror("execv");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        // Parent process: wait for child to finish
+        int status;
+        if (waitpid(pid, &status, 0) == -1)
+        {
+            perror("waitpid");
+            return false;
+        }
+        return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    }
 }
 
 /**
@@ -95,5 +133,45 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
 
     va_end(args);
 
-    return true;
+    // Flush stdout buffer to avoid duplicate prints
+    fflush(stdout);
+
+    // Redirect stdout to a file, then execute command using fork() and execv()
+    pid_t pid = fork();
+    if (pid == -1)
+    {
+        perror("fork");
+        return false;
+    }
+    else if (pid == 0)
+    {
+        // Child process: redirect stdout and execute command
+        int fd = open(outputfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd == -1)
+        {
+            perror("open");
+            exit(EXIT_FAILURE);
+        }
+        if (dup2(fd, STDOUT_FILENO) == -1)
+        {
+            perror("dup2");
+            close(fd);
+            exit(EXIT_FAILURE);
+        }
+        close(fd);
+        execv(command[0], command);
+        perror("execv");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        // Parent process: wait for child to finish
+        int status;
+        if (waitpid(pid, &status, 0) == -1)
+        {
+            perror("waitpid");
+            return false;
+        }
+        return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    }
 }

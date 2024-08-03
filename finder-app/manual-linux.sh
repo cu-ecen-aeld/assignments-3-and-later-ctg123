@@ -66,6 +66,7 @@ echo -e "${YELLOW}Create necessary base directories${NC}"
 mkdir -p ${OUTDIR}/rootfs/{bin,dev,etc,home,lib,lib64,proc,sbin,sys,tmp,usr,var}
 mkdir -p ${OUTDIR}/rootfs/usr/{bin,lib,sbin}
 mkdir -p ${OUTDIR}/rootfs/var/log
+#mkdir -p ${OUTDIR}/rootfs/home/conf
 
 cd "$OUTDIR"
 if [ ! -d "${OUTDIR}/busybox" ]
@@ -144,11 +145,14 @@ make CROSS_COMPILE=${CROSS_COMPILE}
 # on the target rootfs
 echo -e "${YELLOW}Copy the finder related scripts and executables to the /home directory${NC}"
 
-cp ${FINDER_APP_DIR}/finder.sh ${OUTDIR}/rootfs/home/
-cp ${FINDER_APP_DIR}/finder-test.sh ${OUTDIR}/rootfs/home/
-cp ${FINDER_APP_DIR}/writer ${OUTDIR}/rootfs/home/
-cp ${FINDER_APP_DIR}/autorun-qemu.sh ${OUTDIR}/rootfs/home/
-cp -Lr ${FINDER_APP_DIR}/conf/ ${OUTDIR}/rootfs/home/
+cp ${FINDER_APP_DIR}/finder.sh "${OUTDIR}/rootfs/home/"
+cp ${FINDER_APP_DIR}/finder-test.sh "${OUTDIR}/rootfs/home/"
+cp ${FINDER_APP_DIR}/writer "${OUTDIR}/rootfs/home/"
+cp ${FINDER_APP_DIR}/autorun-qemu.sh "${OUTDIR}/rootfs/home/"
+#cp -Lr ${FINDER_APP_DIR}/conf/ ${OUTDIR}/rootfs/home/
+mkdir -p ${OUTDIR}/rootfs/home/conf
+cp -a conf/username.txt "${OUTDIR}/rootfs/home/conf"
+cp -a conf/assignment.txt "${OUTDIR}/rootfs/home/conf"
 
 # TODO: Chown the root directory
 echo -e "${YELLOW}Chown the root directory${NC}"

@@ -10,6 +10,8 @@ NUMFILES=10
 WRITESTR=AELD_IS_FUN
 WRITEDIR=/tmp/aeld-data
 CONFIG_DIR=/etc/finder-app/conf
+SCRIPT_PATH=$(dirname $0)
+
 username=$(cat $CONFIG_DIR/username.txt)
 
 if [ $# -lt 3 ]
@@ -57,10 +59,13 @@ fi
 for i in $( seq 1 $NUMFILES)
 do
 	#./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
-	/usr/bin/writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
+	$SCRIPT_PATH/writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
-OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
+OUTPUTSTRING=$($SCRIPT_PATH/finder.sh "$WRITEDIR" "$WRITESTR")
+
+# Write the output to /tmp/assignment4-result.txt
+echo "$OUTPUTSTRING" > /tmp/assignment4-result.txt
 
 # remove temporary directories
 rm -rf /tmp/aeld-data

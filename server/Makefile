@@ -1,7 +1,7 @@
-# Don't set CC directly, let the build system provide it
-# CC := gcc
-CFLAGS := -Wall -Werror
-LDFLAGS := -lpthread
+# append to any existing flags and Yocto provided LDFLAGS
+# 
+CFLAGS += -Wall -Werror
+LDFLAGS += -lpthread
 
 # Only set CC if CROSS_COMPILE is provided and CC isn't already set
 ifdef CROSS_COMPILE
